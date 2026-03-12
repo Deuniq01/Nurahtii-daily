@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nurahtii Daily — Our Daily World</title>
+<title>Nurahtii — Our Daily World</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Tajawal:wght@300;400;500&family=Lato:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -246,7 +246,7 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
     <button class="btn btn-primary" onclick="tryEntry()" style="justify-content:center;">
       Open My World &#x2728;
     </button>
-    <!--<button class="btn btn-ghost" onclick="tryEntryBypass()" style="justify-content:center;font-size:.75rem;padding:.6rem 1.5rem;">
+    <!-- <button class="btn btn-ghost" onclick="tryEntryBypass()" style="justify-content:center;font-size:.75rem;padding:.6rem 1.5rem;">
       Enter as Guest (name only)
     </button> -->
   </div>
@@ -533,7 +533,8 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
   <button class="btn btn-ghost" onclick="showPage('pg-home')" style="margin-top:1rem;font-size:.8rem;">&#x2190; Back to Home</button>
 </div>
 
-<script type="module">
+<script>
+
 
 /* ══════════════════════════════════════
    DATA — 100 DAYS
@@ -961,32 +962,36 @@ const DEFAULT_QA=[
 /* ══════════════════════════════════════
    FIREBASE CONFIG & INIT
 ══════════════════════════════════════ */
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyDDJEVz_3zJTzalAnz6K0WjcALC4acuGSc",
-  authDomain: "nurahtii.firebaseapp.com",
-  projectId: "nurahtii",
-  storageBucket: "nurahtii.firebasestorage.app",
-  messagingSenderId: "623773594280",
-  appId: "1:623773594280:web:78e89ceaccc81924c0c89d",
-  measurementId: "G-T6BMEB80PK"
-};
-
-const fbApp = initializeApp(firebaseConfig);
-const db = getFirestore(fbApp);
-
-/* Firebase read/write */
-async function fbGet(key) {
-  try {
-    const snap = await getDoc(doc(db, "userData", key));
-    return snap.exists() ? snap.data().value : null;
-  } catch(e) { return null; }
+// Firebase via dynamic import (plain <script>, no type=module needed)
+let _db=null;
+async function getDB(){
+  if(_db) return _db;
+  const {initializeApp}=await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
+  const {getFirestore}=await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+  _db=getFirestore(initializeApp({
+    apiKey:"AIzaSyDDJEVz_3zJTzalAnz6K0WjcALC4acuGSc",
+    authDomain:"nurahtii.firebaseapp.com",
+    projectId:"nurahtii",
+    storageBucket:"nurahtii.firebasestorage.app",
+    messagingSenderId:"623773594280",
+    appId:"1:623773594280:web:78e89ceaccc81924c0c89d"
+  }));
+  return _db;
 }
-async function fbSet(key, value) {
-  try { await setDoc(doc(db, "userData", key), { value }, { merge: true }); }
-  catch(e) { console.error("fbSet:", e); }
+async function fbGet(key){
+  try{
+    const db=await getDB();
+    const {doc,getDoc}=await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    const snap=await getDoc(doc(db,"userData",key));
+    return snap.exists()?snap.data().value:null;
+  }catch(e){return null;}
+}
+async function fbSet(key,value){
+  try{
+    const db=await getDB();
+    const {doc,setDoc}=await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    await setDoc(doc(db,"userData",key),{value},{merge:true});
+  }catch(e){console.error("fbSet:",e);}
 }
 
 /* Hybrid store: localStorage for speed, Firebase for persistence */
@@ -1454,6 +1459,7 @@ async function adminReset(){
   Object.keys(localStorage).filter(k=>k.startsWith('nur_')).forEach(k=>localStorage.removeItem(k));
   showPage('pg-entry');
 }
+
 </script>
 </body>
 </html>
