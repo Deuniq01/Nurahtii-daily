@@ -2,8 +2,16 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nurahtii — Our Daily World</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Nurahtii Daily — Our Daily World</title>
+<meta name="description" content="A world built for you, every single day">
+<meta name="theme-color" content="#0d1b2a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Nurahtii">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Tajawal:wght@300;400;500&family=Lato:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -246,7 +254,7 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
     <button class="btn btn-primary" onclick="tryEntry()" style="justify-content:center;">
       Open My World &#x2728;
     </button>
-    <!-- <button class="btn btn-ghost" onclick="tryEntryBypass()" style="justify-content:center;font-size:.75rem;padding:.6rem 1.5rem;">
+    <!--<button class="btn btn-ghost" onclick="tryEntryBypass()" style="justify-content:center;font-size:.75rem;padding:.6rem 1.5rem;">
       Enter as Guest (name only)
     </button> -->
   </div>
@@ -1460,6 +1468,25 @@ async function adminReset(){
   showPage('pg-entry');
 }
 
+
+// Register service worker for PWA
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js')
+      .then(()=>console.log('SW registered'))
+      .catch(e=>console.log('SW failed:',e));
+  });
+}
+</script>
+
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js')
+      .then(()=>console.log('SW registered'))
+      .catch(e=>console.log('SW failed:',e));
+  });
+}
 </script>
 </body>
 </html>
