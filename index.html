@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nurahtii — Our Daily World</title>
+<title>Nurahtii Daily — Our Daily World</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Tajawal:wght@300;400;500&family=Lato:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -246,9 +246,9 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
     <button class="btn btn-primary" onclick="tryEntry()" style="justify-content:center;">
       Open My World &#x2728;
     </button>
-    <button class="btn btn-ghost" onclick="tryEntryBypass()" style="justify-content:center;font-size:.75rem;padding:.6rem 1.5rem;">
+    <!--<button class="btn btn-ghost" onclick="tryEntryBypass()" style="justify-content:center;font-size:.75rem;padding:.6rem 1.5rem;">
       Enter as Guest (name only)
-    </button>
+    </button> -->
   </div>
 </div>
 
@@ -422,14 +422,14 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
   <div class="mood-wrap">
     <p class="mood-question" id="moodQuestion">How are you feeling today, Nurahtii?</p>
     <div class="mood-options" id="moodOptions">
-      <button class="mood-btn" onclick="selectMood('happy','&#x1F338;')">&#x1F338; Happy</button>
-      <button class="mood-btn" onclick="selectMood('peaceful','&#x1F3F5;')">&#x1F3F5; Peaceful</button>
-      <button class="mood-btn" onclick="selectMood('grateful','&#x1F31F;')">&#x1F31F; Grateful</button>
-      <button class="mood-btn" onclick="selectMood('tired','&#x1F343;')">&#x1F343; Tired</button>
-      <button class="mood-btn" onclick="selectMood('anxious','&#x1F3B6;')">&#x1F3B6; Anxious</button>
-      <button class="mood-btn" onclick="selectMood('loved','&#x1F90D;')">&#x1F90D; Loved</button>
-      <button class="mood-btn" onclick="selectMood('sad','&#x1F338;')">&#x1FAB7; Sad</button>
-      <button class="mood-btn" onclick="selectMood('hopeful','&#x2728;')">&#x2728; Hopeful</button>
+      <button class="mood-btn" onclick="selectMood('happy')">&#x1F338; Happy</button>
+      <button class="mood-btn" onclick="selectMood('peaceful')">&#x1F3F5; Peaceful</button>
+      <button class="mood-btn" onclick="selectMood('grateful')">&#x1F31F; Grateful</button>
+      <button class="mood-btn" onclick="selectMood('tired')">&#x1F343; Tired</button>
+      <button class="mood-btn" onclick="selectMood('anxious')">&#x1F3B6; Anxious</button>
+      <button class="mood-btn" onclick="selectMood('loved')">&#x1F90D; Loved</button>
+      <button class="mood-btn" onclick="selectMood('sad')">&#x1FAB7; Sad</button>
+      <button class="mood-btn" onclick="selectMood('hopeful')">&#x2728; Hopeful</button>
     </div>
     <div id="moodNoteWrap" style="display:none;margin-bottom:1rem;">
       <textarea class="mood-note-input" id="moodNote" placeholder="Want to add a note? (optional)" rows="2"></textarea>
@@ -533,7 +533,8 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
   <button class="btn btn-ghost" onclick="showPage('pg-home')" style="margin-top:1rem;font-size:.8rem;">&#x2190; Back to Home</button>
 </div>
 
-<script>
+<script type="module">
+
 /* ══════════════════════════════════════
    DATA — 100 DAYS
 ══════════════════════════════════════ */
@@ -956,19 +957,72 @@ const DEFAULT_QA=[
 /* ══════════════════════════════════════
    STATE & STORAGE
 ══════════════════════════════════════ */
-const STORE={
-  get:(k)=>{try{return JSON.parse(localStorage.getItem('nur_'+k));}catch(e){return null;}},
-  set:(k,v)=>{localStorage.setItem('nur_'+k,JSON.stringify(v));}
+
+/* ══════════════════════════════════════
+   FIREBASE CONFIG & INIT
+══════════════════════════════════════ */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDDJEVz_3zJTzalAnz6K0WjcALC4acuGSc",
+  authDomain: "nurahtii.firebaseapp.com",
+  projectId: "nurahtii",
+  storageBucket: "nurahtii.firebasestorage.app",
+  messagingSenderId: "623773594280",
+  appId: "1:623773594280:web:78e89ceaccc81924c0c89d",
+  measurementId: "G-T6BMEB80PK"
 };
 
+const fbApp = initializeApp(firebaseConfig);
+const db = getFirestore(fbApp);
+
+/* Firebase read/write */
+async function fbGet(key) {
+  try {
+    const snap = await getDoc(doc(db, "userData", key));
+    return snap.exists() ? snap.data().value : null;
+  } catch(e) { return null; }
+}
+async function fbSet(key, value) {
+  try { await setDoc(doc(db, "userData", key), { value }, { merge: true }); }
+  catch(e) { console.error("fbSet:", e); }
+}
+
+/* Hybrid store: localStorage for speed, Firebase for persistence */
+const CACHE = {
+  get:(k)=>{ try{ return JSON.parse(localStorage.getItem('nur_'+k)); }catch(e){ return null; } },
+  set:(k,v)=>{ localStorage.setItem('nur_'+k, JSON.stringify(v)); }
+};
+const STORE = {
+  get:(k)=>CACHE.get(k),
+  set:async(k,v)=>{ CACHE.set(k,v); await fbSet(k,v); }
+};
+
+/* On load: pull all saved data from Firebase into localStorage */
+async function syncFromFirebase() {
+  const keys = ['startDate','moodHistory','jarOpened','dqAnswers','qaList','jarExtras'];
+  await Promise.all(keys.map(async k => {
+    const val = await fbGet(k);
+    if (val !== null) CACHE.set(k, val);
+  }));
+  const day = getDay();
+  for(let d=Math.max(1,day-2); d<=Math.min(100,day+5); d++){
+    const val = await fbGet('noteOverride_'+d);
+    if(val !== null) CACHE.set('noteOverride_'+d, val);
+  }
+}
+
+/* ══════════════════════════════════════
+   DAY CALCULATION
+══════════════════════════════════════ */
 function getDay(){
-  let start=STORE.get('startDate');
-  if(!start){start=new Date().toISOString().split('T')[0];STORE.set('startDate',start);}
+  let start=CACHE.get('startDate');
+  if(!start) start=new Date().toISOString().split('T')[0];
   const ms=new Date()-new Date(start);
   return Math.min(Math.max(1,Math.floor(ms/(1000*60*60*24))+1),100);
 }
-
-function getIdx(){return getDay()-1;}
+function getIdx(){ return getDay()-1; }
 
 /* ══════════════════════════════════════
    STARS
@@ -991,7 +1045,6 @@ function showPage(id){
   currentPage=id;
   const nav=document.getElementById('topnav');
   nav.classList.toggle('show',id!=='pg-entry');
-  document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
   window.scrollTo(0,0);
   if(id==='pg-note')loadNote();
   if(id==='pg-dua')loadDua();
@@ -1010,27 +1063,38 @@ function showPage(id){
 const VALID_NAMES=['nurahtii','morenikeji','bolatito','nura'];
 const VALID_PASS=['nurahtii','jannah','nur','light'];
 
-function tryEntry(){
+async function tryEntry(){
   const name=document.getElementById('entryName').value.trim().toLowerCase();
   const pass=document.getElementById('entryPass').value.trim().toLowerCase();
   const err=document.getElementById('entryError');
-  if(!name){err.textContent='Please enter your name, my love &#x1F90D;';return;}
+  if(!name){err.innerHTML='Please enter your name, my love &#x1F90D;';return;}
   const nameOk=VALID_NAMES.some(n=>name.includes(n));
   const passOk=VALID_PASS.some(p=>pass.includes(p));
-  if(nameOk&&passOk){STORE.set('userName',document.getElementById('entryName').value.trim());enterWorld();}
-  else if(nameOk&&!pass){STORE.set('userName',document.getElementById('entryName').value.trim());enterWorld();}
-  else if(!nameOk){err.innerHTML='Hmm... are you sure that is what he calls you? &#x1F319;';}
-  else{err.innerHTML='The secret word is a hint away — think of what you mean to him &#x1F4A1;';}
+  if((nameOk&&passOk)||(nameOk&&!pass)){
+    CACHE.set('userName',document.getElementById('entryName').value.trim());
+    await enterWorld();
+  } else if(!nameOk){
+    err.innerHTML='Hmm... are you sure that is what he calls you? &#x1F319;';
+  } else {
+    err.innerHTML='The secret word is a hint away — think of what you mean to him &#x1F4A1;';
+  }
 }
 
-function tryEntryBypass(){
+async function tryEntryBypass(){
   const name=document.getElementById('entryName').value.trim();
   if(!name){document.getElementById('entryError').innerHTML='Please enter your name first &#x1F90D;';return;}
-  STORE.set('userName',name);enterWorld();
+  CACHE.set('userName',name);
+  await enterWorld();
 }
 
-function enterWorld(){
-  if(!STORE.get('startDate'))STORE.set('startDate',new Date().toISOString().split('T')[0]);
+async function enterWorld(){
+  document.getElementById('entryError').innerHTML='&#x2728; Opening your world...';
+  if(!CACHE.get('startDate')){
+    const today=new Date().toISOString().split('T')[0];
+    CACHE.set('startDate',today);
+    await fbSet('startDate',today);
+  }
+  await syncFromFirebase();
   showPage('pg-home');
 }
 
@@ -1050,10 +1114,10 @@ const GREETINGS=[
 ];
 const HOME_QUOTES=[
   "Every morning you open this, you choose us. That means everything.",
-  "\"And He found you lost and guided you.\" — Quran 93:7",
+  '"And He found you lost and guided you." — Quran 93:7',
   "Love is not a feeling. It is a direction. Yours is toward Jannah.",
   "You are more loved than you will ever fully know.",
-  "\"Verily, with hardship comes ease.\" — Quran 94:6",
+  '"Verily, with hardship comes ease." — Quran 94:6',
   "The best of you is who you are becoming. Keep going.",
   "He built this because he wanted you to feel loved even on the quiet days."
 ];
@@ -1063,7 +1127,7 @@ function loadHome(){
   document.getElementById('homeDay').textContent=day;
   document.getElementById('homeGreeting').innerHTML=GREETINGS[day%GREETINGS.length];
   document.getElementById('homeQuote').innerHTML=HOME_QUOTES[day%HOME_QUOTES.length];
-  const jarDone=(STORE.get('jarOpened')||[]).includes(day);
+  const jarDone=(CACHE.get('jarOpened')||[]).includes(day);
   document.getElementById('jarBadge').style.display=jarDone?'none':'block';
   document.getElementById('noteBadge').style.display='block';
 }
@@ -1073,7 +1137,7 @@ function loadHome(){
 ══════════════════════════════════════ */
 function loadNote(){
   const day=getDay(),idx=getIdx();
-  const override=STORE.get('noteOverride_'+day);
+  const override=CACHE.get('noteOverride_'+day);
   const text=override||LOVE_NOTES[idx]||LOVE_NOTES[LOVE_NOTES.length-1];
   document.getElementById('noteDayBadge').textContent='Day '+day+' of 100';
   document.getElementById('noteText').textContent=text;
@@ -1084,8 +1148,7 @@ function loadNote(){
 ══════════════════════════════════════ */
 function loadDua(){
   const idx=getIdx();
-  const dua=DUAS[idx]||DUAS[DUAS.length-1];
-  document.getElementById('duaText').innerHTML=dua;
+  document.getElementById('duaText').innerHTML=DUAS[idx]||DUAS[DUAS.length-1];
 }
 
 /* ══════════════════════════════════════
@@ -1093,45 +1156,40 @@ function loadDua(){
 ══════════════════════════════════════ */
 function loadJar(){
   const day=getDay();
-  const opened=STORE.get('jarOpened')||[];
-  const count=opened.length;
-  document.getElementById('jarCount').textContent=count+' / 100 surprises collected';
-  // stars
+  const opened=CACHE.get('jarOpened')||[];
+  document.getElementById('jarCount').textContent=opened.length+' / 100 surprises collected';
   const stars=document.getElementById('jarStars');
   stars.innerHTML='';
-  for(let i=0;i<Math.min(count,20);i++){const s=document.createElement('span');s.textContent='★';s.style.color='var(--gold)';s.style.fontSize='.9rem';stars.appendChild(s);}
+  for(let i=0;i<Math.min(opened.length,20);i++){
+    const s=document.createElement('span');
+    s.textContent='★';s.style.color='var(--gold)';s.style.fontSize='.9rem';
+    stars.appendChild(s);
+  }
   document.getElementById('jarSurprise').classList.remove('show');
   document.getElementById('jarAlready').style.display='none';
   if(opened.includes(day)){
-    // show it again
-    const extras=STORE.get('jarExtras')||{};
-    const idx=day-1;
-    const text=extras[day]||JAR[idx]||JAR[JAR.length-1];
+    const extras=CACHE.get('jarExtras')||{};
+    const text=extras[day]||JAR[day-1]||JAR[JAR.length-1];
     document.getElementById('jarSurpriseText').innerHTML=text;
     document.getElementById('jarSurprise').classList.add('show');
-    document.getElementById('jarAlready').textContent="You already opened today's surprise &#x2728; Come back tomorrow for a new one!";
+    document.getElementById('jarAlready').textContent="You already opened today's surprise ✨ Come back tomorrow!";
     document.getElementById('jarAlready').style.display='block';
   }
 }
 
-function openJar(){
+async function openJar(){
   const day=getDay();
-  const opened=STORE.get('jarOpened')||[];
-  if(opened.includes(day)){
-    document.getElementById('jarAlready').style.display='block';
-    return;
-  }
+  const opened=CACHE.get('jarOpened')||[];
+  if(opened.includes(day)){document.getElementById('jarAlready').style.display='block';return;}
   opened.push(day);
-  STORE.set('jarOpened',opened);
-  const extras=STORE.get('jarExtras')||{};
-  const idx=day-1;
-  const text=extras[day]||JAR[idx]||JAR[JAR.length-1];
+  await STORE.set('jarOpened',opened);
+  const extras=CACHE.get('jarExtras')||{};
+  const text=extras[day]||JAR[day-1]||JAR[JAR.length-1];
   document.getElementById('jarSurpriseText').innerHTML=text;
   document.getElementById('jarSurprise').classList.add('show');
   document.getElementById('jarCount').textContent=opened.length+' / 100 surprises collected';
-  document.getElementById('jarAlready').textContent='You opened today\'s surprise &#x2728;';
+  document.getElementById('jarAlready').textContent="You opened today's surprise ✨";
   document.getElementById('jarAlready').style.display='block';
-  // animate jar
   const svg=document.getElementById('jarSvg');
   svg.style.transform='scale(1.1) rotate(5deg)';
   setTimeout(()=>svg.style.transform='scale(1) rotate(0)',400);
@@ -1141,11 +1199,11 @@ function openJar(){
    COUNTDOWN
 ══════════════════════════════════════ */
 const CD_EVENTS=[
-  {date:"2026-10-07T00:00:00", label:"&#x1F4C5; Our Anniversary &mdash; October 7, 2026", sub:"Every second is a second closer to celebrating what we have built. Bi idhni Llah."},
-  {date:"2026-10-11T00:00:00", label:"&#x1F382; Habeeb's Birthday &mdash; October 11, 2026", sub:"The day Habeeb came into the world. And eventually into yours. &#x1F90D;"},
-  {date:"2026-11-13T00:00:00", label:"&#x1F338; Nurahtii's Birthday &mdash; November 13, 2026", sub:"The day the world received its light. Happy birthday in advance, my Nurahtii. &#x1F4A1;"}
+  {date:"2026-10-07T00:00:00",label:"&#x1F4C5; Our Anniversary &mdash; October 7, 2026",sub:"Every second is a second closer to celebrating what we have built. Bi idhni Llah."},
+  {date:"2026-10-11T00:00:00",label:"&#x1F382; Habeeb's Birthday &mdash; October 11, 2026",sub:"The day Habeeb came into the world. And eventually into yours. &#x1F90D;"},
+  {date:"2026-11-13T00:00:00",label:"&#x1F338; Nurahtii's Birthday &mdash; November 13, 2026",sub:"The day the world received its light. Happy birthday in advance, my Nurahtii. &#x1F4A1;"}
 ];
-let cdInterval, cdActive=0;
+let cdInterval,cdActive=0;
 
 function switchCD(i){
   cdActive=i;
@@ -1159,22 +1217,16 @@ function startCountdown(){
   document.getElementById('cdTarget').innerHTML=ev.label;
   document.getElementById('cdSub').innerHTML=ev.sub;
   function update(){
-    const target=new Date(ev.date);
-    const now=new Date();
-    let diff=target-now;
+    const diff=new Date(ev.date)-new Date();
     if(diff<0){
       ['cdDays','cdHours','cdMins','cdSecs'].forEach(id=>document.getElementById(id).textContent='00');
       document.getElementById('cdSub').innerHTML='&#x1F389; The day has arrived! Celebrate well. &#x2728;';
       clearInterval(cdInterval);return;
     }
-    const d=Math.floor(diff/(1000*60*60*24));
-    const h=Math.floor((diff%(1000*60*60*24))/(1000*60*60));
-    const m=Math.floor((diff%(1000*60*60))/(1000*60));
-    const s=Math.floor((diff%(1000*60))/1000);
-    document.getElementById('cdDays').textContent=String(d).padStart(2,'0');
-    document.getElementById('cdHours').textContent=String(h).padStart(2,'0');
-    document.getElementById('cdMins').textContent=String(m).padStart(2,'0');
-    document.getElementById('cdSecs').textContent=String(s).padStart(2,'0');
+    document.getElementById('cdDays').textContent=String(Math.floor(diff/(864e5))).padStart(2,'0');
+    document.getElementById('cdHours').textContent=String(Math.floor((diff%864e5)/36e5)).padStart(2,'0');
+    document.getElementById('cdMins').textContent=String(Math.floor((diff%36e5)/6e4)).padStart(2,'0');
+    document.getElementById('cdSecs').textContent=String(Math.floor((diff%6e4)/1e3)).padStart(2,'0');
   }
   update();cdInterval=setInterval(update,1000);
 }
@@ -1182,20 +1234,20 @@ function startCountdown(){
 /* ══════════════════════════════════════
    MOOD GARDEN
 ══════════════════════════════════════ */
-const MOOD_FLOWERS={'happy':'🌸','peaceful':'🌺','grateful':'🌼','tired':'🍃','anxious':'🌿','loved':'💮','sad':'🪷','hopeful':'🌻'};
+const MOOD_FLOWERS={happy:'🌸',peaceful:'🌺',grateful:'🌼',tired:'🍃',anxious:'🌿',loved:'💮',sad:'🪷',hopeful:'🌻'};
 let selectedMood=null;
 
 function loadMood(){
   selectedMood=null;
   const today=new Date().toISOString().split('T')[0];
-  const history=STORE.get('moodHistory')||[];
+  const history=CACHE.get('moodHistory')||[];
   const todayMood=history.find(m=>m.date===today);
   const wrap=document.getElementById('moodNoteWrap');
   const msg=document.getElementById('moodTodayMsg');
   if(todayMood){
     wrap.style.display='none';
     msg.style.display='block';
-    msg.innerHTML=MOOD_FLOWERS[todayMood.mood]+' You felt <strong>'+todayMood.mood+'</strong> today.'+(todayMood.note?' "'+todayMood.note+'"':'');
+    msg.innerHTML=(MOOD_FLOWERS[todayMood.mood]||'🌸')+' You felt <strong>'+todayMood.mood+'</strong> today.'+(todayMood.note?' "'+todayMood.note+'"':'');
     document.getElementById('moodQuestion').textContent='You have already checked in today, Nurahtii ✓';
   } else {
     wrap.style.display='none';
@@ -1205,26 +1257,26 @@ function loadMood(){
   renderGarden();
 }
 
-function selectMood(mood,icon){
+function selectMood(mood){
   selectedMood=mood;
   document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('sel'));
   event.target.closest('.mood-btn').classList.add('sel');
   document.getElementById('moodNoteWrap').style.display='block';
 }
 
-function saveMood(){
+async function saveMood(){
   if(!selectedMood)return;
   const today=new Date().toISOString().split('T')[0];
-  const history=STORE.get('moodHistory')||[];
+  const history=CACHE.get('moodHistory')||[];
   if(history.find(m=>m.date===today))return;
   const note=document.getElementById('moodNote').value.trim();
-  history.push({date:today,mood:selectedMood,note,flower:MOOD_FLOWERS[selectedMood]});
-  STORE.set('moodHistory',history);
+  history.push({date:today,mood:selectedMood,note,flower:MOOD_FLOWERS[selectedMood]||'🌸'});
+  await STORE.set('moodHistory',history);
   loadMood();
 }
 
 function renderGarden(){
-  const history=STORE.get('moodHistory')||[];
+  const history=CACHE.get('moodHistory')||[];
   const grid=document.getElementById('gardenGrid');
   const title=document.getElementById('gardenTitle');
   grid.innerHTML='';
@@ -1232,8 +1284,10 @@ function renderGarden(){
     title.style.display='block';
     history.forEach(m=>{
       const el=document.createElement('span');
-      el.className='garden-flower';el.title=m.mood+' — '+m.date;
-      el.textContent=m.flower||'🌸';grid.appendChild(el);
+      el.className='garden-flower';
+      el.title=m.mood+' — '+m.date;
+      el.textContent=m.flower||'🌸';
+      grid.appendChild(el);
     });
   }
 }
@@ -1241,28 +1295,29 @@ function renderGarden(){
 /* ══════════════════════════════════════
    Q&A
 ══════════════════════════════════════ */
+
 function loadQA(){
-  const saved=STORE.get('qaList')||[];
+  const saved=CACHE.get('qaList')||[];
   const all=[...DEFAULT_QA,...saved];
   const list=document.getElementById('qaList');
   list.innerHTML='';
   all.forEach(item=>{
     const div=document.createElement('div');
-    div.className='qa-item from-'+item.who;
-    div.innerHTML=`<div class="qa-who">${item.who==='habeeb'?'Habeeb answers':'Nurahtii asks'}</div>
-      <div class="qa-q">${item.q}</div>
-      ${item.a?'<div class="qa-a">'+item.a+'</div>':'<div class="qa-a" style="color:var(--muted);font-style:italic;">Habeeb will answer this soon...</div>'}`;
+    div.className='qa-item from-'+(item.who||'habeeb');
+    div.innerHTML='<div class="qa-who">'+(item.who==='habeeb'?'Habeeb answers':'Nurahtii asks')+'</div>'
+      +'<div class="qa-q">'+item.q+'</div>'
+      +(item.a?'<div class="qa-a">'+item.a+'</div>':'<div class="qa-a" style="color:var(--muted);font-style:italic;">Habeeb will answer this soon...</div>');
     list.appendChild(div);
   });
   list.scrollTop=list.scrollHeight;
 }
 
-function submitQuestion(){
+async function submitQuestion(){
   const q=document.getElementById('qaQuestion').value.trim();
   if(!q)return;
-  const saved=STORE.get('qaList')||[];
+  const saved=CACHE.get('qaList')||[];
   saved.push({q,a:'',who:'her',date:new Date().toISOString()});
-  STORE.set('qaList',saved);
+  await STORE.set('qaList',saved);
   document.getElementById('qaQuestion').value='';
   loadQA();
 }
@@ -1274,7 +1329,7 @@ function loadDQ(){
   const day=getDay(),idx=getIdx();
   const q=QUESTIONS[idx]||QUESTIONS[QUESTIONS.length-1];
   document.getElementById('dqQuestion').textContent=q;
-  const answers=STORE.get('dqAnswers')||{};
+  const answers=CACHE.get('dqAnswers')||{};
   const answerWrap=document.getElementById('dqAnswerWrap');
   const answeredEl=document.getElementById('dqAnswered');
   if(answers[day]){
@@ -1285,7 +1340,6 @@ function loadDQ(){
     answerWrap.style.display='block';
     answeredEl.style.display='none';
   }
-  // previous
   const prev=Object.entries(answers).filter(([d])=>parseInt(d)<day).slice(-3);
   const prevEl=document.getElementById('dqPrev');
   const prevList=document.getElementById('dqPrevList');
@@ -1294,29 +1348,26 @@ function loadDQ(){
     prevList.innerHTML='';
     prev.forEach(([d,a])=>{
       const pIdx=parseInt(d)-1;
-      const pQ=QUESTIONS[pIdx]||'';
       const div=document.createElement('div');div.className='dq-prev-item';
-      div.innerHTML=`<div class="dq-prev-q">${pQ}</div><div class="dq-prev-a">"${a}"</div>`;
+      div.innerHTML='<div class="dq-prev-q">'+(QUESTIONS[pIdx]||'')+'</div><div class="dq-prev-a">"'+a+'"</div>';
       prevList.appendChild(div);
     });
   }
 }
 
-function saveDqAnswer(){
+async function saveDqAnswer(){
   const a=document.getElementById('dqAnswer').value.trim();
   if(!a)return;
   const day=getDay();
-  const answers=STORE.get('dqAnswers')||{};
+  const answers=CACHE.get('dqAnswers')||{};
   answers[day]=a;
-  STORE.set('dqAnswers',answers);
+  await STORE.set('dqAnswers',answers);
   loadDQ();
 }
 
 /* ══════════════════════════════════════
    ADMIN
 ══════════════════════════════════════ */
-// Secret: type "habeeb" anywhere on entry page title 5 times fast — or navigate to #admin
-// ── ADMIN ACCESS: keyboard + mobile tap gesture ──
 let adminKeyBuf='';
 document.addEventListener('keydown',e=>{
   adminKeyBuf+=e.key.toLowerCase();
@@ -1324,12 +1375,11 @@ document.addEventListener('keydown',e=>{
   if(adminKeyBuf.includes('habeeb')){showPage('pg-admin');adminKeyBuf='';}
 });
 
-// MOBILE: tap the "Nurahtii" logo in the top nav 5 times quickly
 let adminTapCount=0,adminTapTimer=null;
 document.getElementById('topnav').querySelector('.nav-logo').addEventListener('click',()=>{
   adminTapCount++;
   clearTimeout(adminTapTimer);
-  adminTapTimer=setTimeout(()=>{ adminTapCount=0; },2000);
+  adminTapTimer=setTimeout(()=>{adminTapCount=0;},2000);
   if(adminTapCount>=5){
     adminTapCount=0;
     const pin=prompt('Admin PIN:');
@@ -1338,70 +1388,68 @@ document.getElementById('topnav').querySelector('.nav-logo').addEventListener('c
   }
 });
 
-// URL fallback: add #admin to the file path, e.g. nurahtii-daily.html#admin
 if(window.location.hash==='#admin'){
   const pin=prompt('Admin PIN:');
   if(pin&&pin.trim().toLowerCase()==='habeeb') showPage('pg-admin');
 }
 
 function loadAdmin(){
-  // show unanswered questions
-  const saved=STORE.get('qaList')||[];
+  const saved=CACHE.get('qaList')||[];
   const unanswered=saved.filter(q=>!q.a);
   const list=document.getElementById('adminQList');
   list.innerHTML='';
-  if(unanswered.length===0){list.innerHTML='<p style="font-size:.8rem;color:var(--muted);font-style:italic;">No unanswered questions ✓</p>';}
-  else{
+  if(unanswered.length===0){
+    list.innerHTML='<p style="font-size:.8rem;color:var(--muted);font-style:italic;">No unanswered questions ✓</p>';
+  } else {
     unanswered.forEach(q=>{
       const d=document.createElement('div');
       d.style.cssText='background:rgba(255,255,255,.04);border-radius:10px;padding:.7rem 1rem;margin-bottom:.5rem;font-size:.82rem;color:var(--cream);border-left:2px solid var(--rose);';
       d.textContent=q.q;list.appendChild(d);
     });
   }
-  // show current day note override
-  const day=getDay();
-  const override=STORE.get('noteOverride_'+day);
+  const override=CACHE.get('noteOverride_'+getDay());
   if(override)document.getElementById('adminNote').value=override;
 }
 
-function adminSaveNote(){
+async function adminSaveNote(){
   const note=document.getElementById('adminNote').value.trim();
   if(!note)return;
   const day=getDay();
-  STORE.set('noteOverride_'+day,note);
+  CACHE.set('noteOverride_'+day,note);
+  await fbSet('noteOverride_'+day,note);
   const s=document.getElementById('adminNoteSuccess');
   s.style.display='block';setTimeout(()=>s.style.display='none',3000);
 }
 
-function adminSaveQA(){
+async function adminSaveQA(){
   const q=document.getElementById('adminReplyQ').value.trim();
   const a=document.getElementById('adminReplyA').value.trim();
   if(!q||!a)return;
-  const saved=STORE.get('qaList')||[];
+  const saved=CACHE.get('qaList')||[];
   const existing=saved.find(item=>item.q.toLowerCase()===q.toLowerCase());
   if(existing){existing.a=a;}
   else{saved.push({q,a,who:'habeeb',date:new Date().toISOString()});}
-  STORE.set('qaList',saved);
+  await STORE.set('qaList',saved);
   document.getElementById('adminReplyQ').value='';
   document.getElementById('adminReplyA').value='';
   const s=document.getElementById('adminQASuccess');
   s.style.display='block';setTimeout(()=>s.style.display='none',3000);
 }
 
-function adminSaveJar(){
+async function adminSaveJar(){
   const msg=document.getElementById('adminJarMsg').value.trim();
   const day=parseInt(document.getElementById('adminJarDay').value);
   if(!msg||!day||day<1||day>100)return;
-  const extras=STORE.get('jarExtras')||{};
+  const extras=CACHE.get('jarExtras')||{};
   extras[day]=msg;
-  STORE.set('jarExtras',extras);
+  await STORE.set('jarExtras',extras);
   document.getElementById('adminJarMsg').value='';
   document.getElementById('adminJarDay').value='';
   const s=document.getElementById('adminJarSuccess');
   s.style.display='block';setTimeout(()=>s.style.display='none',3000);
 }
 
-function adminReset(){
+async function adminReset(){
   if(!confirm('Reset ALL data? This cannot be undone.'))return;
   Object.keys(localStorage).filter(k=>k.startsWith('nur_')).forEach(k=>localStorage.removeItem(k));
   showPage('pg-entry');
