@@ -1,4 +1,5 @@
 {
+  "id": "https://nurahtii-daily.netlify.app/"
   "name": "Nurahtii — Our Daily World",
   "short_name": "Nurahtii",
   "description": "A world built for you, every single day",
@@ -24,12 +25,12 @@
   "screenshots": [
     {
       "src": "nurahtii-daily.netlify.app_screen1.png",
-      "sizes": "1080x1920",
+      "sizes": "1290x2796",
       "type": "image/png"
     },
     {
       "src": "nurahtii-daily.netlify.app_screen2.png",
-      "sizes": "1080x1920",
+      "sizes": "828x1792",
       "type": "image/png"
     }
   ]
