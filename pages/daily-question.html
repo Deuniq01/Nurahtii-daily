@@ -1,0 +1,23 @@
+<div class="page" id="pg-dq">
+  <p class="page-label">Just For You</p>
+  <h2 class="page-title">Today's <em>Question</em></h2>
+  <div class="divider"></div>
+  <div class="dq-wrap">
+    <div class="dq-card">
+      <div class="dq-question" id="dqQuestion"></div>
+      <div id="dqAnswerWrap">
+        <textarea class="mood-note-input" id="dqAnswer" placeholder="Write your answer here... just for you." rows="3"></textarea>
+        <button class="btn btn-primary" onclick="saveDqAnswer()" style="margin-top:.8rem;font-size:.8rem;padding:.6rem 1.5rem;">Save My Answer &#x2728;</button>
+      </div>
+      <div class="dq-answered" id="dqAnswered" style="display:none;"></div>
+    </div>
+    <div class="dq-prev" id="dqPrev" style="display:none;">
+      <div class="dq-prev-title">Previous answers</div>
+      <div id="dqPrevList"></div>
+    </div>
+  </div>
+  <div style="margin-top:1.2rem;display:flex;gap:.8rem;flex-wrap:wrap;justify-content:center;">
+    <button class="btn btn-ghost" onclick="showPage('pg-qa')" style="font-size:.75rem;padding:.6rem 1.2rem;">&#x2190; Q&A</button>
+    <button class="btn btn-primary" onclick="showPage('pg-home')" style="font-size:.8rem;padding:.6rem 1.5rem;">Back to Home &#x1F3E0;</button>
+  </div>
+</div>

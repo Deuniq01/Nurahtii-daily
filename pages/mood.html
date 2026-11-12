@@ -1,0 +1,29 @@
+<div class="page" id="pg-mood">
+  <p class="page-label">Your Feelings Matter</p>
+  <h2 class="page-title">The Mood <em>Garden</em></h2>
+  <div class="divider"></div>
+  <div class="mood-wrap">
+    <p class="mood-question" id="moodQuestion">How are you feeling today, Nurahtii?</p>
+    <div class="mood-options" id="moodOptions">
+      <button class="mood-btn" onclick="selectMood('happy')">&#x1F338; Happy</button>
+      <button class="mood-btn" onclick="selectMood('peaceful')">&#x1F3F5; Peaceful</button>
+      <button class="mood-btn" onclick="selectMood('grateful')">&#x1F31F; Grateful</button>
+      <button class="mood-btn" onclick="selectMood('tired')">&#x1F343; Tired</button>
+      <button class="mood-btn" onclick="selectMood('anxious')">&#x1F3B6; Anxious</button>
+      <button class="mood-btn" onclick="selectMood('loved')">&#x1F90D; Loved</button>
+      <button class="mood-btn" onclick="selectMood('sad')">&#x1FAB7; Sad</button>
+      <button class="mood-btn" onclick="selectMood('hopeful')">&#x2728; Hopeful</button>
+    </div>
+    <div id="moodNoteWrap" style="display:none;margin-bottom:1rem;">
+      <textarea class="mood-note-input" id="moodNote" placeholder="Want to add a note? (optional)" rows="2"></textarea>
+      <button class="btn btn-primary" onclick="saveMood()" style="margin-top:.5rem;">Plant in my garden &#x1F331;</button>
+    </div>
+    <div id="moodTodayMsg" style="display:none;" class="dq-answered"></div>
+    <div class="mood-history-title" id="gardenTitle" style="display:none;">Your garden — every petal is a day &#x1F338;</div>
+    <div class="garden-grid" id="gardenGrid"></div>
+  </div>
+  <div style="margin-top:1.2rem;display:flex;gap:.8rem;flex-wrap:wrap;justify-content:center;">
+    <button class="btn btn-ghost" onclick="showPage('pg-countdown')" style="font-size:.75rem;padding:.6rem 1.2rem;">&#x2190; Countdown</button>
+    <button class="btn btn-ghost" onclick="showPage('pg-qa')" style="font-size:.75rem;padding:.6rem 1.2rem;">Next: Q&A &#x2192;</button>
+  </div>
+</div>

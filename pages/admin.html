@@ -1,0 +1,48 @@
+<div class="page" id="pg-admin" style="justify-content:flex-start;align-items:flex-start;">
+  <p class="page-label" style="margin-top:1rem;">Admin Panel</p>
+  <h2 class="page-title" style="text-align:left;">Habeeb's <em>Control Room</em></h2>
+  <div class="divider" style="margin-left:0;"></div>
+
+  <div class="admin-section">
+    <div class="admin-title">&#x1F4DD; Override Today's Love Note</div>
+    <span class="admin-label">Custom note (will show today only):</span>
+    <textarea class="admin-textarea" id="adminNote" placeholder="Write a custom note for today..."></textarea>
+    <button class="btn btn-gold" onclick="adminSaveNote()" style="margin-top:.5rem;font-size:.8rem;padding:.6rem 1.4rem;">Save Note</button>
+    <div class="admin-success" id="adminNoteSuccess">&#x2713; Saved!</div>
+  </div>
+
+  <div class="admin-section">
+    <div class="admin-title">&#x1F4AC; Answer Her Questions</div>
+    <div id="adminQList" style="max-height:200px;overflow-y:auto;margin-bottom:.8rem;"></div>
+    <span class="admin-label">Reply to unanswered question:</span>
+    <input class="admin-input" id="adminReplyQ" placeholder="Which question? (copy it here)" />
+    <textarea class="admin-textarea" id="adminReplyA" placeholder="Your answer..." style="min-height:70px;"></textarea>
+    <button class="btn btn-gold" onclick="adminSaveQA()" style="margin-top:.5rem;font-size:.8rem;padding:.6rem 1.4rem;">Post Answer</button>
+    <div class="admin-success" id="adminQASuccess">&#x2713; Posted!</div>
+  </div>
+
+  <div class="admin-section">
+    <div class="admin-title">&#x1F4DA; Prepare Daily Content</div>
+    <label class="admin-label" for="adminContentDay">Day number (1–10,000)</label>
+    <input class="admin-input" id="adminContentDay" type="number" min="1" max="10000" step="1" value="101" />
+    <button class="btn btn-ghost" onclick="adminLoadContentDay()" style="margin-top:.5rem;font-size:.8rem;padding:.6rem 1.4rem;">Load Day</button>
+    <label class="admin-label" for="adminContentNote">Love note</label>
+    <textarea class="admin-textarea" id="adminContentNote" placeholder="Write the love note for this day..."></textarea>
+    <label class="admin-label" for="adminContentDua">Dua</label>
+    <textarea class="admin-textarea" id="adminContentDua" placeholder="Write the dua for this day..."></textarea>
+    <label class="admin-label" for="adminContentJar">Love jar surprise</label>
+    <textarea class="admin-textarea" id="adminContentJar" placeholder="Write the jar surprise for this day..."></textarea>
+    <label class="admin-label" for="adminContentQuestion">Daily question</label>
+    <textarea class="admin-textarea" id="adminContentQuestion" placeholder="Write the daily question..."></textarea>
+    <button class="btn btn-gold" onclick="adminSaveContentDay()" style="margin-top:.5rem;font-size:.8rem;padding:.6rem 1.4rem;">Save Day's Content</button>
+    <p class="admin-note" id="adminContentStatus" role="status" aria-live="polite">The first 100 days are included. Prepare entries through Day 730 here; the day count continues as you add content.</p>
+  </div>
+
+  <div class="admin-section">
+    <div class="admin-title">&#x1F504; Reset (Development Only)</div>
+    <button class="btn btn-ghost" id="adminResetButton" onclick="adminReset()" style="font-size:.78rem;padding:.5rem 1.2rem;border-color:var(--rose);color:var(--rose);">Reset All Data</button>
+    <p class="admin-note" style="margin-top:.4rem;">Permanently clears this browser's app data and every document in Firebase's userData collection.</p>
+  </div>
+
+  <button class="btn btn-ghost" onclick="showPage('pg-home')" style="margin-top:1rem;font-size:.8rem;">&#x2190; Back to Home</button>
+</div>

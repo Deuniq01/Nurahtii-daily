@@ -1,0 +1,26 @@
+<div class="page" id="pg-countdown">
+  <p class="page-label">Counting Every Second</p>
+  <h2 class="page-title">Special <em>Dates</em></h2>
+  <div class="countdown-wrap">
+    <!-- Tab switcher -->
+    <div style="display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap;margin-bottom:1.5rem;">
+      <button class="cd-tab active" id="cdTab0" onclick="switchCD(0)">&#x1F90D; Anniversary</button>
+      <button class="cd-tab" id="cdTab1" onclick="switchCD(1)">&#x1F382; Habeeb's Birthday</button>
+      <button class="cd-tab" id="cdTab2" onclick="switchCD(2)">&#x1F338; Nurahtii's Birthday</button>
+    </div>
+    <p class="countdown-target" id="cdTarget">&#x1F4C5; Our Anniversary &mdash; October 7, 2026</p>
+    <div class="countdown-grid">
+      <div class="cd-box"><div class="cd-num" id="cdDays">00</div><div class="cd-label">Days</div></div>
+      <div class="cd-box"><div class="cd-num" id="cdHours">00</div><div class="cd-label">Hours</div></div>
+      <div class="cd-box"><div class="cd-num" id="cdMins">00</div><div class="cd-label">Minutes</div></div>
+      <div class="cd-box"><div class="cd-num" id="cdSecs">00</div><div class="cd-label">Seconds</div></div>
+    </div>
+    <div class="divider"></div>
+    <p class="countdown-sub" id="cdSub">Every second that passes is a second closer to celebrating what we have built. Bi idhni Llah.</p>
+    <p class="arabic" style="font-size:1.1rem;text-align:center;margin-top:1rem;">&#x628;&#x625;&#x630;&#x646; &#x627;&#x644;&#x644;&#x647;</p>
+  </div>
+  <div style="margin-top:1.2rem;display:flex;gap:.8rem;flex-wrap:wrap;justify-content:center;">
+    <button class="btn btn-ghost" onclick="showPage('pg-jar')" style="font-size:.75rem;padding:.6rem 1.2rem;">&#x2190; Jar</button>
+    <button class="btn btn-ghost" onclick="showPage('pg-mood')" style="font-size:.75rem;padding:.6rem 1.2rem;">Next: Mood &#x2192;</button>
+  </div>
+</div>
